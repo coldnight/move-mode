@@ -4,6 +4,7 @@
   (and (= emacs-major-version 24)
        (>= emacs-minor-version 4)
        (require 'cl))
+  (require 'cc-align)
   (require 'cc-langs)
   (require 'cc-fonts))
 
@@ -21,19 +22,34 @@
 
 
 (c-lang-defconst c-modifier-kwds
-  move '("public" "acquires" "fun" "let" "mut" "drop" "public(friend)" "public(script)" "const" "has" "friend" "aborts_if" "ensures"))
+  move '("public fun" "fun" "let" "let mut" "public(friend) fun" "public(script) fun" "const" "friend"))
+
+
+(c-lang-defconst c-decl-prefix-re
+  ;; Same as for C, except it does not match "(". This is needed for disabling
+  ;; the syntax for casts.
+  move"\\([\{\};,]+\\)")
+
+(c-lang-defconst c-type-prefix-kws
+  move '("struct"))
 
 (c-lang-defconst c-class-decl-kwds
-  move '("address" "module" "struct" "script" "spec"))
+  move '("struct"))
 
 (c-lang-defconst c-constant-kwds
   move '("true" "false"))
 
 (c-lang-defconst c-other-decl-kwds
-  move '("use" "import"))
+  move '( "module" "script" "spec"))
+
+(c-lang-defconst c-typeof-kwds
+  move '("as"))
 
 (c-lang-defconst c-other-kwds
-  move '("as" "abort"))
+  move '("abort"))
+
+(c-lang-defconst c-use-kwds
+  move '("use"))
 
 (c-lang-defconst c-identifier-ops
   ;; Handle extended identifiers
@@ -47,11 +63,11 @@
   move '("vector" "signer" "address"))
 
 (c-lang-defconst c-typeless-decl-kwds
-  move '("copy" "move_to" "move_from" "borrow_global" "borrow_global_mut" "assert!" "exists" "global"))
+  move '("acquires" "has" "aborts_if" "ensures") )
 
 
 (c-lang-defconst c-block-stmt-1-kwds
-  move '("loop" "while" "if" "else"))
+  move '("loop" "while" "if" "else" "address"))
 
 ;; Here we remove default syntax for loops, if-statements and other C
 ;; syntactic features that are not supported by the Move language.
@@ -64,7 +80,7 @@
   move '("loop" "while" "if" "else"))
 
 (c-lang-defconst c-simple-stmt-kwds
-  move '("break" "continue"))
+  move '("break" "continue" "return"))
 
 (c-lang-defconst c-paren-stmt-kwds
   ;; Remove special case for the "(;;)" in for-loops.
@@ -76,10 +92,6 @@
 
 (c-lang-defconst c-before-label-kwds
   ;; Remove special case for the label in a goto statement.
-  move nil)
-
-(c-lang-defconst c-cpp-matchers
-  ;; Disable all the C preprocessor syntax.
   move nil)
 
 
@@ -100,6 +112,7 @@
 ;; previously with the `c-lang-const' macro.
 (defvar move-mode-syntax-table nil
   "Syntax table used in move-mode buffers.")
+
 (or move-mode-syntax-table
     (setq move-mode-syntax-table
           (funcall (c-lang-const c-make-mode-syntax-table move))))
@@ -136,6 +149,12 @@ Key bindings:
         abbrev-mode t
         c-basic-offset 4
         tab-width 4)
+  (c-set-offset 'arglist-cont
+                '(c-lineup-arglist-operators 0))
+  (c-set-offset 'arglist-cont-nonempty
+                '(c-lineup-arglist-operators c-lineup-arglist))
+  (c-set-offset 'arglist-close
+                '(c-lineup-under-anchor))
   (use-local-map move-mode-map)
   (c-initialize-cc-mode t)
   (if (fboundp 'c-make-emacs-variables-local)
