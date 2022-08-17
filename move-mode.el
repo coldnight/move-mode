@@ -149,12 +149,19 @@ Key bindings:
         abbrev-mode t
         c-basic-offset 4
         tab-width 4)
+
+  ;; Arglist
   (c-set-offset 'arglist-cont
                 '(c-lineup-arglist-operators 0))
   (c-set-offset 'arglist-cont-nonempty
                 '(c-lineup-arglist-operators c-lineup-arglist))
   (c-set-offset 'arglist-close
                 '(c-lineup-under-anchor))
+
+  ;; CC mode recognized struct fields as a statement.
+  ;; Here we made the offset to 0 to fix its indentation.
+  (c-set-offset 'statement-cont 0)
+
   (use-local-map move-mode-map)
   (c-initialize-cc-mode t)
   (if (fboundp 'c-make-emacs-variables-local)
